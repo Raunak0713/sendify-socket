@@ -9,6 +9,7 @@ dotenv.config();
 type NotificationPayload = {
   userId: string;
   content: string;
+  notificationId : string;
   buttonText?: string;
   buttonUrl?: string;
 };
@@ -17,7 +18,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "*", // Allow specific frontend URL in production
+    origin: process.env.FRONTEND_URL || "*",
     methods: ["GET", "POST"]
   }
 });
@@ -48,12 +49,12 @@ io.on("connection", (socket) => {
 });
 
 app.post("/send-notification", (req, res) => {
-  const { userIds, content, buttonText, buttonUrl }: { userIds: string[] } & NotificationPayload = req.body;
+  const { notificationId, userIds, content, buttonText, buttonUrl }: { userIds: string[] } & NotificationPayload = req.body;
 
   userIds.forEach((userId) => {
     const socketId = userSockets.get(userId);
     if (socketId) {
-      io.to(socketId).emit("new-notification", { content, buttonText, buttonUrl });
+      io.to(socketId).emit("new-notification", { notificationId, content, buttonText, buttonUrl });
       console.log(`📢 Sent notification to User: ${userId}`);
     }
   });
@@ -65,3 +66,4 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🚀 Socket server running on port ${PORT}`);
 });
+
